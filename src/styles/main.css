@@ -1,0 +1,118 @@
+#app {
+  position: relative;
+  width: 100svw;
+  height: 100svh;
+}
+#game-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+
+  background-color: rgb(135, 216, 253);
+}
+.ui-label {
+  color: #2d2d53;
+  font-size: 32px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.ui-headline {
+  color: #000028;
+  font-size: 48px;
+  font-weight: 400;
+}
+#game-score,
+#game-timer {
+  z-index: 10;
+  position: fixed;
+}
+#game-timer {
+  top: 1rem;
+  right: 2rem;
+}
+#game-score {
+  top: 1rem;
+  left: 2rem;
+}
+#game-menu .dialog-panel > div,
+#game-pause .dialog-panel > div,
+#game-over .dialog-panel > div {
+  display: flex;
+  gap: 2rem;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+#game-about .dialog-panel > div > div:last-child,
+#game-over .dialog-panel > div > div:last-child,
+#game-menu .dialog-panel > div > div:last-child,
+#game-pause .dialog-panel > div > div:last-child {
+  display: flex;
+  gap: 0.75rem;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+#game-pause .dialog-panel > div > div:first-child,
+#game-over .dialog-panel > div > div:first-child {
+  display: flex;
+  gap: 8rem;
+  justify-content: center;
+  align-items: center;
+}
+#game-about .dialog-panel > div > div > button,
+#game-over .dialog-panel > div > div > button,
+#game-menu .dialog-panel > div > div > button,
+#game-pause .dialog-panel > div > div > button {
+  width: 224px;
+}
+
+#game-about .dialog-panel > div {
+  display: flex;
+  gap: 2rem;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 2rem 0;
+}
+#game-about .dialog-panel > div > .card-container {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1fr 1fr;
+}
+#game-about .dialog-panel > div > div > .img-card:first-child {
+  grid-column: span 2;
+}
+#game-about .dialog-panel > div > div > .img-card {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1fr 2fr;
+  max-width: 28rem;
+  padding: 1rem;
+  background: rgba(0, 0, 20, 0.8);
+}
+#game-about .dialog-panel > div > div > .img-card > .card-img-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#game-about .dialog-panel > div > div > div > .card-text-content {
+  display: flex;
+  gap: 0.25rem;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+#game-about .dialog-panel > div > div > div > .card-text-content > span:first-child {
+  font-size: 24px;
+  color: #ffffff;
+}
+#game-about .dialog-panel > div > div > div > .card-text-content > span:last-child {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #dadada;
+}

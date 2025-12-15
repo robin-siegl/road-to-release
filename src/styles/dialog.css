@@ -1,0 +1,31 @@
+.dialog-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  visibility: hidden;
+  opacity: 0;
+
+  background-color: rgba(0, 0, 60, 0.3);
+  backdrop-filter: blur(4px);
+
+  transition: visibility 0s .2s, opacity .2s ease-in-out;
+}
+.dialog-wrapper > .dialog-panel {
+  overflow-y: auto;
+  width: 100%;
+}
+.dialog-wrapper.visible,
+.dialog-wrapper.visible,
+.dialog-wrapper.visible {
+  visibility: visible;
+  opacity: 1;
+}
