@@ -105,7 +105,7 @@ export class WorldObject {
    */
   public get speed(): number {
     const minutes = this.game.gameTime / 60;
-    const multiplier = Math.min(4.5, 1 + minutes * 0.1);
+    const multiplier = Math.min(4.5, 1 + minutes * 0.15);
 
     return WorldObject.SPEED * multiplier;
   }
@@ -134,9 +134,27 @@ export class WorldObject {
   }
 
   public isPlayerColliding(x: number, y: number): boolean {
-    const collideX = x + 24 >= this.x && x - 8 <= (this.x + this.width);
-    const collideY = y + 24 >= this.y && y - 8 <= (this.y + this.height);
-    return collideX && collideY;
+    const radius = 13;
+
+    // Circle center player
+    const cx = x + 16;
+    const cy = y + 16;
+
+    // Rectangle bounds object
+    const rx = this.x;
+    const ry = this.y;
+    const rw = this.width;
+    const rh = this.height;
+
+    // Clamp circle center to rectangle
+    const closestX = Math.max(rx, Math.min(cx, rx + rw));
+    const closestY = Math.max(ry, Math.min(cy, ry + rh));
+
+    // Distance from circle center to closest point
+    const dx = cx - closestX;
+    const dy = cy - closestY;
+
+    return (dx * dx + dy * dy) <= radius * radius;
   }
 
   /**
