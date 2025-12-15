@@ -35,26 +35,26 @@ export class ObjectSpawner {
     let weights: Array<{ value: WorldObjectType; weight: number }>;
 
     // Early game
-    if (time <= 40) {
+    if (time <= 30) {
       weights = [
         { value: WorldObjectType.Wall, weight: 70 },
         { value: WorldObjectType.Bugs, weight: 30 },
       ];
     }
     // Mid game
-    else if (time <= 80) {
+    else if (time <= 60) {
       weights = [
-        { value: WorldObjectType.Wall, weight: 50 },
+        { value: WorldObjectType.Wall, weight: 40 },
         { value: WorldObjectType.Bugs, weight: 30 },
-        { value: WorldObjectType.Requirements, weight: 20 },
+        { value: WorldObjectType.Requirements, weight: 30 },
       ];
     }
     // Late game
     else {
       weights = [
-        { value: WorldObjectType.Wall, weight: 35 },
-        { value: WorldObjectType.Bugs, weight: 25 },
-        { value: WorldObjectType.Requirements, weight: 20 },
+        { value: WorldObjectType.Wall, weight: 20 },
+        { value: WorldObjectType.Bugs, weight: 30 },
+        { value: WorldObjectType.Requirements, weight: 30 },
         { value: WorldObjectType.BigCheese, weight: 20 },
       ];
     }
