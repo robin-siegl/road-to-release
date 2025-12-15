@@ -24,7 +24,7 @@ export class ObjectMgr {
    * Get calculated spawn time
    */
   private get spawnTime(): number {
-    const interval = Math.max(((this.game.gameTime / 60) * 0.75), 1);
+    const interval = Math.max(((this.game.gameTime / 60) * 1.4), 1);
     return ObjectMgr.SPAWN_INTERVAL / interval;
   }
 
