@@ -7,7 +7,7 @@
 #game-score { left: max(1rem, env(safe-area-inset-left)); }
 #game-timer { right: max(1rem, env(safe-area-inset-right)); }
 #game-pause-control { position: fixed; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); z-index: 20; width: auto; min-width: 88px; touch-action: manipulation; }
-.game-instructions { color: #18102e; font-family: Arial, sans-serif; font-size: 14px; text-align: center; }
+.game-instructions { color: rgb(24 16 46 / 70%); font-family: Arial, sans-serif; font-size: 13px; text-align: center; }
 .dialog-stats { display: flex; gap: clamp(2rem, 12vw, 8rem); }
 .card-container { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; width: min(100%, 60rem); }
 .img-card { display: grid; grid-template-columns: 64px 1fr; gap: 1rem; align-items: center; padding: 1rem; background: rgb(0 0 20 / 85%); }

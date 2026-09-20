@@ -73,8 +73,10 @@ export class UI {
     );
     const controls = document.createElement('p');
     controls.className = 'game-instructions';
-    controls.textContent = 'Tap, Space or ↑ to jump · P to pause';
-    content.append(headline, controls, actions);
+    controls.textContent = window.matchMedia('(pointer: coarse)').matches
+      ? 'Tap anywhere to jump'
+      : 'Press Space to jump';
+    content.append(headline, actions, controls);
     this.menuElem.classList.add('visible');
   }
 
