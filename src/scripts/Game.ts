@@ -1,344 +1,209 @@
-import { App } from "./App";
-import { AssetMgr } from "./AssetMgr";
-import { GameClock } from "./GameClock";
-import { ObjectMgr } from "./ObjectMgr";
-import { Player } from "./Player";
-import { UI } from "./UI";
+import { App } from './App';
+import { AssetMgr } from './AssetMgr';
+import { GameClock } from './GameClock';
+import { ObjectMgr } from './ObjectMgr';
+import { Player } from './Player';
+import { UI } from './UI';
 
 export enum GameState {
-  /** Main Menu -> before starting game */
   Idle,
-  /** Game is running */
   Running,
-  /** Paused game */
   Paused,
-  /** Game Over */
   GameOver,
 }
 
-/**
- * Game Service
- */
 export class Game {
-  /** ID for Canvas Element */
-  static CANVAS_ID = 'game-screen';
-
-  /** Game Canvas Element */
-  private canvas: HTMLCanvasElement | null | undefined = void 0;
-  /** Canvas Context */
-  private canvasCtx: CanvasRenderingContext2D | null | undefined = void 0;
-
-  /** Current Asset Manager */
-  private assetMgr: AssetMgr;
-
-  /** Current Clock Service class */
-  private clock: GameClock | undefined = void 0;
-  /** Current Player class */
-  private player: Player | undefined = void 0;
-  /** Object Manager */
-  private objectMgr: ObjectMgr | undefined = void 0;
-  /** UI Class */
-  private ui: UI | undefined = void 0;
-
-  /** Current game state */
+  public static readonly CANVAS_ID = 'game-screen';
+  private readonly assetMgr = new AssetMgr();
+  private readonly ui: UI;
+  private canvas?: HTMLCanvasElement;
+  private canvasCtx?: CanvasRenderingContext2D;
+  private clock?: GameClock;
+  private player?: Player;
+  private objectMgr?: ObjectMgr;
+  private animationFrameId: number | null = null;
+  private resizeFrameId: number | null = null;
+  private logicalWidth = 0;
+  private logicalHeight = 0;
   private state = GameState.Idle;
+  private ready = false;
 
-  /** Resize Event Handler reference */
-  private resizeHandler = this.onResize.bind(this)
-  /** Key Press Event Handler reference */
-  private keyPressHandler = this.onKeyPress.bind(this)
-
-  constructor() {
-    this.assetMgr = new AssetMgr();
-
+  public constructor() {
     this.ui = new UI(this);
-    this.ui.showMenu();
+    this.ui.showMenu(false);
+    void this.initialize();
+  }
 
-    this.assetMgr.loadAssets().then(() => {
-      // Setup Clean Game Screen
-      this.cleanupCanvas();
+  private async initialize(): Promise<void> {
+    try {
+      await this.assetMgr.loadAssets();
       this.createCanvas();
+      window.addEventListener('resize', this.onResize, { passive: true });
+      window.addEventListener('keydown', this.onKeyDown);
+      document.addEventListener('visibilitychange', this.onVisibilityChange);
+      this.ready = true;
+      this.ui.showMenu(true);
+      this.draw();
+    } catch (error) {
+      console.error(error);
+      this.ui.showLoadError();
+    }
+  }
 
-      // Setup Game Screen Canvas
-      this.setupGround();
-
-      // Add Event Listeners
-      window.addEventListener('resize', this.resizeHandler);
-      window.addEventListener('keypress', this.keyPressHandler);
+  private readonly onResize = (): void => {
+    if (this.resizeFrameId !== null) return;
+    this.resizeFrameId = requestAnimationFrame(() => {
+      this.resizeFrameId = null;
+      this.resizeCanvas();
+      if (this.player) this.player.y = this.player.groundY;
+      this.draw();
     });
-  }
+  };
 
-  /**
-   * Window Resize Handler
-   */
-  private onResize(): void {
-    // Clear canvas and redraw lightbox and ground
-    if (this.canvasCtx && this.canvas) {
-      // Update Canvas Size
-      const clientRects = document.body.getBoundingClientRect();
-      this.canvas.width = clientRects.width;
-      this.canvas.height = clientRects.height;
+  private readonly onKeyDown = (event: KeyboardEvent): void => {
+    if (event.code !== 'KeyP' || event.repeat) return;
+    if (this.state === GameState.Running) this.pauseGame();
+    else if (this.state === GameState.Paused) this.unPauseGame();
+  };
 
-      // Clear Canvas
-      this.canvasCtx.clearRect(0, 0, this.width, this.height);
+  private readonly onVisibilityChange = (): void => {
+    if (!document.hidden) this.clock?.sync(performance.now());
+  };
 
-      // Update Player y position from new is grounded position
-      if (this.player) {
-        this.player.y = this.player.groundY;
-      }
-    }
-  }
+  private readonly animate = (time: DOMHighResTimeStamp): void => {
+    this.animationFrameId = null;
+    if (this.state === GameState.Idle || this.state === GameState.GameOver) return;
 
-  /**
-   * Window Resize Handler
-   */
-  private onKeyPress(event: KeyboardEvent): void {
-    switch (event.key.toLowerCase()) {
-      // Pause Logic
-      case 'p': {
-        // Pause game when running
-        if (this.state === GameState.Running) {
-          this.pauseGame();
-        }
-        // Un-Pause game when paused
-        else if (this.state === GameState.Paused) {
-          this.unPauseGame();
-        }
-        break;
-      }
-    }
-  }
-
-  /**
-   * Main Animation Loop
-   * @param time requestAnimationFrame time
-   */
-  private animate(time: number) {
-    if (this.gameState === GameState.GameOver || this.gameState === GameState.Idle) {
-      return;
-    }
-
-    // Game Not running -> skip game logic
-    if (this.gameState !== GameState.Running) {
+    if (this.state === GameState.Paused) {
       this.clock?.sync(time);
-      requestAnimationFrame(this.animate.bind(this));
       return;
     }
 
     const delta = this.clock?.getDelta(time) ?? 0;
+    this.player?.update(delta);
+    this.objectMgr?.update(delta);
 
-    // Sub Animation Updates
-    this.player?.animate(delta);
-    this.objectMgr?.animate(delta);
-    this.ui?.animate(delta);
+    if (this.player && this.objectMgr?.isPlayerColliding(this.player.x, this.player.y)) {
+      this.endGame();
+    }
 
-    // Draw Main Scene
+    this.ui.update(this.gameTime);
     this.draw();
+    if (this.state === GameState.Running) this.requestNextFrame();
+  };
 
-    // Request new Loop
-    requestAnimationFrame(this.animate.bind(this));
+  private requestNextFrame(): void {
+    if (this.animationFrameId === null) this.animationFrameId = requestAnimationFrame(this.animate);
   }
 
-  /**
-   * Start Game Loop
-   */
-  private startLoop(): void {
-    // Create Game Clock
-    this.clock = new GameClock();
-
-    // Create Player
-    this.player = new Player(this);
-
-    // Create new Game Object Manager
-    this.objectMgr = new ObjectMgr(this);
-
-    // Setup Game Running State
-    this.gameState = GameState.Running;
-
-    if (this.ui) {
-      this.ui.createUI();
-    }
-    else {
-      this.ui = new UI(this);
-    }
-
-    // Start main animation loop
-    this.animate(0);
-  }
-
-  /**
-   * Start New Game - Start Game
-   */
   public startGame(): void {
-    this.clock?.cleanup();
+    if (!this.ready) return;
+    this.stopLoop();
     this.player?.cleanup();
     this.objectMgr?.cleanup();
-    this.ui?.cleanup();
-
-    this.startLoop();
+    this.clock = new GameClock();
+    this.player = new Player(this);
+    this.objectMgr = new ObjectMgr(this);
+    this.ui.createUI();
+    this.state = GameState.Running;
+    this.draw();
+    this.requestNextFrame();
   }
 
-  /**
-   * Pause Game
-   */
+  private stopLoop(): void {
+    if (this.animationFrameId !== null) cancelAnimationFrame(this.animationFrameId);
+    this.animationFrameId = null;
+  }
+
   public pauseGame(): void {
-    this.UI.showPause();
-    this.state = GameState.Paused
+    if (this.state !== GameState.Running) return;
+    this.state = GameState.Paused;
+    this.ui.showPause();
   }
 
-  /**
-   * Resume Game form Pause
-   */
   public unPauseGame(): void {
-    this.UI.hidePause();
-    this.state = GameState.Running
+    if (this.state !== GameState.Paused) return;
+    this.ui.hidePause();
+    this.clock?.sync(performance.now());
+    this.state = GameState.Running;
+    this.requestNextFrame();
   }
 
-  /**
-   * Game Over - End Game
-   */
   public endGame(): void {
+    if (this.state !== GameState.Running) return;
     this.state = GameState.GameOver;
-    this.UI.showGameOver();
+    this.ui.showGameOver();
   }
 
-  /**
-   * Go back to main menu - Restart Game
-   */
   public restartGame(): void {
+    this.stopLoop();
     this.state = GameState.Idle;
-    this.clock?.cleanup();
+    this.player?.cleanup();
     this.objectMgr?.cleanup();
-    this.UI.hidePause();
-    this.UI.hideGameOver();
-    this.UI.showMenu();
+    this.player = undefined;
+    this.objectMgr = undefined;
+    this.clock = undefined;
+    this.ui.hidePause();
+    this.ui.hideGameOver();
+    this.ui.showMenu(true);
+    this.draw();
   }
 
-  /**
-   * Get current game state
-   */
-  public get gameState(): GameState {
-    return this.state;
-  }
+  public get gameState(): GameState { return this.state; }
+  public get AssetManager(): AssetMgr { return this.assetMgr; }
+  public get UI(): UI { return this.ui; }
+  public get gameTime(): number { return this.clock?.time ?? 0; }
+  public get height(): number { return this.logicalHeight; }
+  public get width(): number { return this.logicalWidth; }
+  public get groundY(): number { return this.height * 0.75; }
 
-  /**
-   * Set current game state
-   */
-  public set gameState(state: GameState) {
-    this.state = state;
-  }
-
-  /**
-   * Get Asset Manager
-   */
-  public get AssetManager(): AssetMgr {
-    return this.assetMgr;
-  }
-
-  /**
-   * Get World Object Manager
-   */
-  public get ObjectManager(): ObjectMgr {
-    return this.objectMgr!;
-  }
-
-  /**
-   * Get UI Service
-   */
-  public get UI(): UI {
-    return this.ui!;
-  }
-
-  /**
-   * Get Time the game is already running
-   */
-  public get gameTime(): number {
-    return (this.clock?.time ?? 0);
-  }
-
-  /**
-   * Get Game Screen height
-   */
-  public get height(): number {
-    return this.canvas?.clientHeight ?? 0;
-  }
-
-  /**
-   * Get Game Screen width
-   */
-  public get width(): number {
-    return this.canvas?.clientWidth ?? 0;
-  }
-
-  /**
-   * Get Canvas Context
-   */
   public get ctx(): CanvasRenderingContext2D {
-    return this.canvasCtx!;
+    if (!this.canvasCtx) throw new Error('Canvas context is not ready');
+    return this.canvasCtx;
   }
 
-  /**
-   * Draw Main Scene
-   */
   public draw(): void {
-    this.setupGround();
+    if (!this.canvasCtx) return;
+    this.canvasCtx.fillStyle = '#87d8fd';
+    this.canvasCtx.fillRect(0, 0, this.width, this.height);
+    this.drawGround();
+    this.objectMgr?.draw();
+    this.player?.draw();
   }
 
-  /**
-   * Setup ground in canvas
-   */
-  public setupGround(): void {
-    this.canvasCtx!.fillStyle = 'rgba(0, 0, 0, 1)';
-    this.canvasCtx!.fillRect(0, this.height * 0.75, this.width + 1, this.height);
-    this.canvasCtx!.fillStyle = 'rgba(76, 160, 59, 1)';
-    this.canvasCtx!.fillRect(0, (this.height + 1) * 0.75, this.width + 1, this.height);
-    this.canvasCtx!.fillStyle = 'rgba(36, 25, 8, 1)';
-    this.canvasCtx!.fillRect(0, (this.height + 24) * 0.75, this.width + 1, this.height);
-    this.canvasCtx!.fillStyle = 'rgba(31, 22, 10, 1)';
-    this.canvasCtx!.fillRect(0, (this.height + 64) * 0.75, this.width + 1, this.height);
-    this.canvasCtx!.fillStyle = 'rgba(27, 19, 10, 1)';
-    this.canvasCtx!.fillRect(0, (this.height + 128) * 0.75, this.width + 1, this.height);
-    this.canvasCtx!.fillStyle = 'rgba(22, 16, 9, 1)';
-    this.canvasCtx!.fillRect(0, (this.height + 204) * 0.75, this.width + 1, this.height);
+  private drawGround(): void {
+    const ctx = this.ctx;
+    const layers: ReadonlyArray<[number, string]> = [
+      [0, '#000000'], [1, '#4ca03b'], [18, '#241908'], [48, '#1f160a'], [96, '#1b130a'], [153, '#161009'],
+    ];
+    for (const [offset, color] of layers) {
+      ctx.fillStyle = color;
+      ctx.fillRect(0, this.groundY + offset, this.width, this.height);
+    }
   }
 
-  /**
-   * Create Canvas Element and append it to container
-   */
   private createCanvas(): void {
-    // Create Canvas
+    document.getElementById(Game.CANVAS_ID)?.remove();
     this.canvas = document.createElement('canvas');
     this.canvas.id = Game.CANVAS_ID;
-
-    const clientRects = document.body.getBoundingClientRect();
-    this.canvas.width = clientRects.width;
-    this.canvas.height = clientRects.height;
-
-    // Get Canvas Context
-    this.canvasCtx = this.canvas.getContext('2d');
-
-    // Append Canvas to dom
-    App.Container.appendChild(this.canvas);
+    this.canvas.setAttribute('aria-label', 'Road to Release game');
+    this.canvasCtx = this.canvas.getContext('2d', { alpha: false }) ?? undefined;
+    if (!this.canvasCtx) throw new Error('Canvas 2D is not supported');
+    App.Container.prepend(this.canvas);
+    this.resizeCanvas();
   }
 
-  /**
-   * Cleanup Canvas Element
-   */
-  public cleanupCanvas(): void {
-    const canvasTempElem = document.getElementById(Game.CANVAS_ID);
-
-    // Remove Element if in dom
-    if (canvasTempElem) {
-      canvasTempElem.remove();
-    }
-
-    // Cleanup Event Listeners
-    window.removeEventListener('resize', this.resizeHandler);
-    window.removeEventListener('keypress', this.keyPressHandler);
-
-    // Cleanup context variable
-    this.canvasCtx = void 0;
-    // Cleanup canvas variable
-    this.canvas = void 0;
+  private resizeCanvas(): void {
+    if (!this.canvas || !this.canvasCtx) return;
+    const bounds = App.Container.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.logicalWidth = Math.max(1, Math.round(bounds.width));
+    this.logicalHeight = Math.max(1, Math.round(bounds.height));
+    this.canvas.width = Math.round(this.logicalWidth * dpr);
+    this.canvas.height = Math.round(this.logicalHeight * dpr);
+    this.canvas.style.width = `${this.logicalWidth}px`;
+    this.canvas.style.height = `${this.logicalHeight}px`;
+    this.canvasCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.canvasCtx.imageSmoothingEnabled = false;
   }
 }

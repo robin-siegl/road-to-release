@@ -1,118 +1,17 @@
-#app {
-  position: relative;
-  width: 100svw;
-  height: 100svh;
-}
-#game-screen {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 10;
-
-  background-color: rgb(135, 216, 253);
-}
-.ui-label {
-  color: #2d2d53;
-  font-size: 32px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-.ui-headline {
-  color: #000028;
-  font-size: 48px;
-  font-weight: 400;
-}
-#game-score,
-#game-timer {
-  z-index: 10;
-  position: fixed;
-}
-#game-timer {
-  top: 1rem;
-  right: 2rem;
-}
-#game-score {
-  top: 1rem;
-  left: 2rem;
-}
-#game-menu .dialog-panel > div,
-#game-pause .dialog-panel > div,
-#game-over .dialog-panel > div {
-  display: flex;
-  gap: 2rem;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-#game-about .dialog-panel > div > div:last-child,
-#game-over .dialog-panel > div > div:last-child,
-#game-menu .dialog-panel > div > div:last-child,
-#game-pause .dialog-panel > div > div:last-child {
-  display: flex;
-  gap: 0.75rem;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-#game-pause .dialog-panel > div > div:first-child,
-#game-over .dialog-panel > div > div:first-child {
-  display: flex;
-  gap: 8rem;
-  justify-content: center;
-  align-items: center;
-}
-#game-about .dialog-panel > div > div > button,
-#game-over .dialog-panel > div > div > button,
-#game-menu .dialog-panel > div > div > button,
-#game-pause .dialog-panel > div > div > button {
-  width: 224px;
-}
-
-#game-about .dialog-panel > div {
-  display: flex;
-  gap: 2rem;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 2rem 0;
-}
-#game-about .dialog-panel > div > .card-container {
-  display: grid;
-  gap: 2rem;
-  grid-template-columns: 1fr 1fr;
-}
-#game-about .dialog-panel > div > div > .img-card:first-child {
-  grid-column: span 2;
-}
-#game-about .dialog-panel > div > div > .img-card {
-  display: grid;
-  gap: 2rem;
-  grid-template-columns: 1fr 2fr;
-  max-width: 28rem;
-  padding: 1rem;
-  background: rgba(0, 0, 20, 0.8);
-}
-#game-about .dialog-panel > div > div > .img-card > .card-img-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-#game-about .dialog-panel > div > div > div > .card-text-content {
-  display: flex;
-  gap: 0.25rem;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-}
-#game-about .dialog-panel > div > div > div > .card-text-content > span:first-child {
-  font-size: 24px;
-  color: #ffffff;
-}
-#game-about .dialog-panel > div > div > div > .card-text-content > span:last-child {
-  font-family: Arial, Helvetica, sans-serif;
-  color: #dadada;
-}
+#app { position: relative; width: 100dvw; height: 100dvh; min-height: 100svh; background: #87d8fd; }
+#game-screen { position: absolute; inset: 0; z-index: 1; display: block; background: #87d8fd; image-rendering: pixelated; }
+.ui-label, .ui-headline { color: #000028; text-transform: uppercase; }
+.ui-label { font-size: clamp(24px, 4vw, 32px); font-weight: 600; }
+.ui-headline { font-size: clamp(36px, 7vw, 48px); }
+#game-score, #game-timer { position: fixed; top: 1rem; z-index: 10; }
+#game-score { left: 2rem; }
+#game-timer { right: 2rem; }
+.dialog-stats { display: flex; gap: clamp(2rem, 12vw, 8rem); }
+.card-container { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; width: min(100%, 60rem); }
+.img-card { display: grid; grid-template-columns: 64px 1fr; gap: 1rem; align-items: center; padding: 1rem; background: rgb(0 0 20 / 85%); }
+.img-card:first-child { grid-column: 1 / -1; }
+.img-card img { justify-self: center; image-rendering: pixelated; max-width: 64px; }
+.card-text-content { display: flex; flex-direction: column; color: #dadada; font-family: Arial, sans-serif; }
+.card-text-content span:first-child { color: #fff; font-size: 24px; font-family: "Tiny5", monospace; }
+@media (max-width: 700px) { .card-container { grid-template-columns: 1fr; } .img-card:first-child { grid-column: auto; } #game-score { left: 1rem; } #game-timer { right: 1rem; } }
+@media (prefers-reduced-motion: reduce) { .dialog-wrapper { transition: none; } }

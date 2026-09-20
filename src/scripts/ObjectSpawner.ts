@@ -1,64 +1,39 @@
-import { WorldObjectType } from "./WorldObject";
+import { WorldObjectType } from './WorldObject';
 
-/**
- * Object Spawner Util
- */
 export class ObjectSpawner {
+  public static pickWeighted<T>(entries: ReadonlyArray<{ value: T; weight: number }>): T {
+    if (entries.length === 0) throw new Error('At least one weighted entry is required');
+    const totalWeight = entries.reduce((sum, entry) => sum + Math.max(0, entry.weight), 0);
+    if (totalWeight <= 0) throw new Error('The total weight must be greater than zero');
 
-  /**
-   * Get Random Value based on weight
-   * @param entries to pick from
-   * @returns random World Object Type
-   */
-  static pickWeighted<T>(entries: { value: T; weight: number }[]): T {
-    const totalWeight = entries.reduce((sum, e) => sum + e.weight, 0);
-    const r = Math.random() * totalWeight;
-
-    let acc = 0;
-    for (const e of entries) {
-      acc += e.weight;
-      if (r <= acc) {
-        return e.value;
-      }
+    const target = Math.random() * totalWeight;
+    let accumulated = 0;
+    for (const entry of entries) {
+      accumulated += Math.max(0, entry.weight);
+      if (target < accumulated) return entry.value;
     }
-
-    // Fallback
-    return entries[entries.length - 1].value;
+    return entries.at(-1)!.value;
   }
 
-  /**
-   * Get Random World Object Type based on time the game is already running
-   * @param time animation time
-   * @returns World Object Type
-   */
-  static getRandomType(time: number): WorldObjectType {
-    let weights: Array<{ value: WorldObjectType; weight: number }>;
-
-    // Early game
+  public static getRandomType(time: number): WorldObjectType {
     if (time <= 30) {
-      weights = [
+      return this.pickWeighted([
         { value: WorldObjectType.Wall, weight: 70 },
         { value: WorldObjectType.Bugs, weight: 30 },
-      ];
+      ]);
     }
-    // Mid game
-    else if (time <= 60) {
-      weights = [
+    if (time <= 60) {
+      return this.pickWeighted([
         { value: WorldObjectType.Wall, weight: 40 },
         { value: WorldObjectType.Bugs, weight: 30 },
         { value: WorldObjectType.Requirements, weight: 30 },
-      ];
+      ]);
     }
-    // Late game
-    else {
-      weights = [
-        { value: WorldObjectType.Wall, weight: 20 },
-        { value: WorldObjectType.Bugs, weight: 30 },
-        { value: WorldObjectType.Requirements, weight: 30 },
-        { value: WorldObjectType.BigCheese, weight: 20 },
-      ];
-    }
-
-    return ObjectSpawner.pickWeighted<WorldObjectType>(weights);
+    return this.pickWeighted([
+      { value: WorldObjectType.Wall, weight: 20 },
+      { value: WorldObjectType.Bugs, weight: 30 },
+      { value: WorldObjectType.Requirements, weight: 30 },
+      { value: WorldObjectType.BigCheese, weight: 20 },
+    ]);
   }
 }

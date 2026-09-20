@@ -1,112 +1,49 @@
-import type { Game } from "./Game";
-import { ObjectSpawner } from "./ObjectSpawner";
-import { WorldObject } from "./WorldObject";
+import type { Game } from './Game';
+import { ObjectSpawner } from './ObjectSpawner';
+import { WorldObject } from './WorldObject';
 
-/**
- * Object Manager Service
- */
 export class ObjectMgr {
-  /** Interval of world object spawning in seconds */
-  static SPAWN_INTERVAL = 5;
-  /** Game Service Class Reference */
-  private game: Game;
-  /** List of current Objects in Game */
-  private objList: Array<WorldObject> | undefined;
-  /** seconds since last spawn */
+  private static readonly BASE_SPAWN_INTERVAL = 5;
+  private readonly objects: WorldObject[] = [];
   private timeSinceLastSpawn = 0;
 
-  constructor(game: Game) {
-    this.game = game;
-    this.objList = []
-  }
+  public constructor(private readonly game: Game) {}
 
-  /**
-   * Get calculated spawn time
-   */
   private get spawnTime(): number {
-    const interval = Math.max(((this.game.gameTime / 60) * 1.4), 1);
-    return ObjectMgr.SPAWN_INTERVAL / interval;
+    const difficulty = Math.max((this.game.gameTime / 60) * 1.4, 1);
+    return ObjectMgr.BASE_SPAWN_INTERVAL / difficulty;
   }
 
-  /**
-   * Get info if player is colliding with world object
-   * @param x position
-   * @param y position
-   */
   public isPlayerColliding(x: number, y: number): boolean {
-    // No objects to check for
-    if (typeof this.objList === 'undefined') {
-      return false;
-    }
-
-    let isColliding = false;
-
-    for (const obj of this.objList) {
-      if (obj.isPlayerColliding(x, y)) {
-        isColliding = true;
-        break;
-      }
-    }
-
-    return isColliding;
+    return this.objects.some((object) => object.isPlayerColliding(x, y));
   }
 
-  /**
-   * Animate World Objects
-   * Handles spawning/de-spawning of world objects
-   * @param delta time
-   */
-  public animate(delta: number): void {
-    if (typeof this.game === 'undefined' || typeof this.objList === 'undefined') {
-      return;
-    }
-
+  public update(delta: number): void {
     this.timeSinceLastSpawn += delta;
-
     if (this.timeSinceLastSpawn >= this.spawnTime) {
-      this.timeSinceLastSpawn -= this.spawnTime;
-
-      this.objList.push(
-        new WorldObject(
-          this.game,
-          ObjectSpawner.getRandomType(this.game.gameTime)
-        )
-      );
+      this.timeSinceLastSpawn %= this.spawnTime;
+      this.objects.push(new WorldObject(this.game, ObjectSpawner.getRandomType(this.game.gameTime)));
     }
 
-    const newObjList = [];
+    for (const object of this.objects) object.update(delta);
 
-    for (const obj of this.objList) {
-      // Remove Object
-      if (obj.left < 0) {
-        obj.remove();
-        continue;
+    let writeIndex = 0;
+    for (const object of this.objects) {
+      if (object.left < 0) {
+        this.game.UI.addScore(object.points);
+      } else {
+        this.objects[writeIndex++] = object;
       }
-
-      newObjList.push(obj);
     }
-
-    this.objList = newObjList;
-
-    // Re-Draw Objects
-    for (const obj of this.objList) {
-      obj.draw();
-    }
+    this.objects.length = writeIndex;
   }
 
-  /**
-   * Cleanup Object Manager
-   */
-  public cleanup(): void {
-    // Remove World objects
-    for (const obj of (this.objList ?? [])) {
-      obj.remove();
-    }
+  public draw(): void {
+    for (const object of this.objects) object.draw();
+  }
 
-    // Reset variables
-    this.objList = void 0;
-    (this.game as any) = void 0;
-    this.objList = void 0;
-    (this.timeSinceLastSpawn as any) = void 0;
+  public cleanup(): void {
+    this.objects.length = 0;
+    this.timeSinceLastSpawn = 0;
   }
 }

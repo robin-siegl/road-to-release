@@ -1,37 +1,7 @@
-button {
-  font-size: 18px;
-  border: 3px solid #000028;
-  border-bottom-width: 8px;
-  padding: 0.5rem 0.75rem;
-  cursor: pointer;
-}
-button:active {
-  margin-top: 5px;
-  border-bottom-width: 3px;
-}
-
-button.primary {
-  background-color: #4422a0;
-  color: #ffffff;
-}
-button.primary:hover {
-  background-color: #33197c;
-}
-
-
-button.secondary {
-  background-color: #cdc3ec;
-  color: #18102e;
-}
-button.secondary:hover {
-  background-color: #baaedf;
-}
-
-button.tertiary {
-  background-color: transparent;
-  color: #000028;
-}
-button.tertiary:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: #000028;
-}
+button { font-size: 18px; border: 3px solid #000028; border-bottom-width: 8px; padding: .5rem .75rem; cursor: pointer; }
+button:active:not(:disabled) { transform: translateY(5px); border-bottom-width: 3px; }
+button:disabled { cursor: wait; opacity: .65; }
+button.primary { background: #4422a0; color: #fff; }
+button.primary:hover:not(:disabled) { background: #33197c; }
+button.secondary { background: #cdc3ec; color: #18102e; }
+button.secondary:hover { background: #baaedf; }
