@@ -48,7 +48,9 @@ export class WorldObject {
   }
 
   private get speed(): number {
-    return WorldObject.BASE_SPEED * Math.min(4.5, 1 + (this.game.gameTime / 60) * 0.15);
+    // Preserve roughly the same reaction time on narrow mobile screens.
+    const viewportScale = Math.min(1, Math.max(0.6, this.game.width / 960));
+    return WorldObject.BASE_SPEED * viewportScale * Math.min(4.5, 1 + (this.game.gameTime / 60) * 0.15);
   }
 
   public update(delta: number): void {

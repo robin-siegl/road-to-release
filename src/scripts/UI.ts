@@ -15,12 +15,14 @@ export class UI {
   private static readonly PAUSE_ID = 'game-pause';
   private static readonly GAME_OVER_ID = 'game-over';
   private static readonly ABOUT_ID = 'game-about';
+  private static readonly PAUSE_CONTROL_ID = 'game-pause-control';
   private timerElem?: HTMLSpanElement;
   private scoreElem?: HTMLSpanElement;
   private menuElem?: HTMLDivElement;
   private pauseElem?: HTMLDivElement;
   private gameOverElem?: HTMLDivElement;
   private aboutElem?: HTMLDivElement;
+  private pauseControl?: HTMLButtonElement;
   private scoreValue = 0;
   private displayedSecond = -1;
 
@@ -38,6 +40,11 @@ export class UI {
     this.pauseElem = this.createDialog(UI.PAUSE_ID);
     this.gameOverElem = this.createDialog(UI.GAME_OVER_ID);
     this.aboutElem = this.createDialog(UI.ABOUT_ID);
+    this.pauseControl = Button.create('secondary', 'Pause', () => this.game.pauseGame());
+    this.pauseControl.id = UI.PAUSE_CONTROL_ID;
+    this.pauseControl.hidden = true;
+    this.pauseControl.setAttribute('aria-label', 'Pause game');
+    App.Container.append(this.pauseControl);
   }
 
   public update(time: number): void {
@@ -64,7 +71,10 @@ export class UI {
       Button.create('primary', ready ? 'New Game' : 'Loading…', () => this.game.startGame(), !ready),
       Button.create('secondary', 'About', () => { this.hideMenu(); this.showAbout(); }),
     );
-    content.append(headline, actions);
+    const controls = document.createElement('p');
+    controls.className = 'game-instructions';
+    controls.textContent = 'Tap, Space or ↑ to jump · P to pause';
+    content.append(headline, controls, actions);
     this.menuElem.classList.add('visible');
   }
 
@@ -82,6 +92,14 @@ export class UI {
   }
 
   public hideMenu(): void { this.menuElem?.classList.remove('visible'); }
+
+  public showGameControls(): void {
+    if (this.pauseControl) this.pauseControl.hidden = false;
+  }
+
+  public hideGameControls(): void {
+    if (this.pauseControl) this.pauseControl.hidden = true;
+  }
 
   public showPause(): void {
     this.renderResultDialog(this.pauseElem, 'Paused', 'Continue', () => this.game.unPauseGame());
@@ -187,7 +205,7 @@ export class UI {
   }
 
   public cleanup(): void {
-    for (const id of [UI.SCORE_ID, UI.TIMER_ID, UI.MENU_ID, UI.PAUSE_ID, UI.GAME_OVER_ID, UI.ABOUT_ID]) {
+    for (const id of [UI.SCORE_ID, UI.TIMER_ID, UI.MENU_ID, UI.PAUSE_ID, UI.GAME_OVER_ID, UI.ABOUT_ID, UI.PAUSE_CONTROL_ID]) {
       document.getElementById(id)?.remove();
     }
     this.scoreElem = undefined;
@@ -196,5 +214,6 @@ export class UI {
     this.pauseElem = undefined;
     this.gameOverElem = undefined;
     this.aboutElem = undefined;
+    this.pauseControl = undefined;
   }
 }

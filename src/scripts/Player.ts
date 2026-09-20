@@ -19,12 +19,17 @@ export class Player {
   }
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
-    if ((event.code === 'Space' || event.key === ' ') && this.grounded && this.game.gameState === GameState.Running) {
+    if (event.code === 'Space' || event.code === 'ArrowUp' || event.key === ' ') {
       event.preventDefault();
-      this.grounded = false;
-      this.jumpElapsed = 0;
+      this.jump();
     }
   };
+
+  public jump(): void {
+    if (!this.grounded || this.game.gameState !== GameState.Running) return;
+    this.grounded = false;
+    this.jumpElapsed = 0;
+  }
 
   public get groundY(): number {
     return this.game.groundY - this.height;

@@ -70,6 +70,12 @@ export class Game {
     if (!document.hidden) this.clock?.sync(performance.now());
   };
 
+  private readonly onCanvasPointerDown = (event: PointerEvent): void => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    this.player?.jump();
+  };
+
   private readonly animate = (time: DOMHighResTimeStamp): void => {
     this.animationFrameId = null;
     if (this.state === GameState.Idle || this.state === GameState.GameOver) return;
@@ -105,6 +111,7 @@ export class Game {
     this.player = new Player(this);
     this.objectMgr = new ObjectMgr(this);
     this.ui.createUI();
+    this.ui.showGameControls();
     this.state = GameState.Running;
     this.draw();
     this.requestNextFrame();
@@ -118,6 +125,7 @@ export class Game {
   public pauseGame(): void {
     if (this.state !== GameState.Running) return;
     this.state = GameState.Paused;
+    this.ui.hideGameControls();
     this.ui.showPause();
   }
 
@@ -126,12 +134,14 @@ export class Game {
     this.ui.hidePause();
     this.clock?.sync(performance.now());
     this.state = GameState.Running;
+    this.ui.showGameControls();
     this.requestNextFrame();
   }
 
   public endGame(): void {
     if (this.state !== GameState.Running) return;
     this.state = GameState.GameOver;
+    this.ui.hideGameControls();
     this.ui.showGameOver();
   }
 
@@ -145,6 +155,7 @@ export class Game {
     this.clock = undefined;
     this.ui.hidePause();
     this.ui.hideGameOver();
+    this.ui.hideGameControls();
     this.ui.showMenu(true);
     this.draw();
   }
@@ -187,6 +198,7 @@ export class Game {
     this.canvas = document.createElement('canvas');
     this.canvas.id = Game.CANVAS_ID;
     this.canvas.setAttribute('aria-label', 'Road to Release game');
+    this.canvas.addEventListener('pointerdown', this.onCanvasPointerDown);
     this.canvasCtx = this.canvas.getContext('2d', { alpha: false }) ?? undefined;
     if (!this.canvasCtx) throw new Error('Canvas 2D is not supported');
     App.Container.prepend(this.canvas);

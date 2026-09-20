@@ -1,11 +1,13 @@
-#app { position: relative; width: 100dvw; height: 100dvh; min-height: 100svh; background: #87d8fd; }
-#game-screen { position: absolute; inset: 0; z-index: 1; display: block; background: #87d8fd; image-rendering: pixelated; }
+#app { position: relative; width: 100dvw; height: 100dvh; min-height: 100svh; overflow: hidden; background: #87d8fd; }
+#game-screen { position: absolute; inset: 0; z-index: 1; display: block; background: #87d8fd; image-rendering: pixelated; touch-action: none; -webkit-user-select: none; user-select: none; }
 .ui-label, .ui-headline { color: #000028; text-transform: uppercase; }
 .ui-label { font-size: clamp(24px, 4vw, 32px); font-weight: 600; }
 .ui-headline { font-size: clamp(36px, 7vw, 48px); }
-#game-score, #game-timer { position: fixed; top: 1rem; z-index: 10; }
-#game-score { left: 2rem; }
-#game-timer { right: 2rem; }
+#game-score, #game-timer { position: fixed; top: max(1rem, env(safe-area-inset-top)); z-index: 10; pointer-events: none; }
+#game-score { left: max(1rem, env(safe-area-inset-left)); }
+#game-timer { right: max(1rem, env(safe-area-inset-right)); }
+#game-pause-control { position: fixed; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); z-index: 20; width: auto; min-width: 88px; touch-action: manipulation; }
+.game-instructions { color: #18102e; font-family: Arial, sans-serif; font-size: 14px; text-align: center; }
 .dialog-stats { display: flex; gap: clamp(2rem, 12vw, 8rem); }
 .card-container { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; width: min(100%, 60rem); }
 .img-card { display: grid; grid-template-columns: 64px 1fr; gap: 1rem; align-items: center; padding: 1rem; background: rgb(0 0 20 / 85%); }
@@ -13,5 +15,6 @@
 .img-card img { justify-self: center; image-rendering: pixelated; max-width: 64px; }
 .card-text-content { display: flex; flex-direction: column; color: #dadada; font-family: Arial, sans-serif; }
 .card-text-content span:first-child { color: #fff; font-size: 24px; font-family: "Tiny5", monospace; }
-@media (max-width: 700px) { .card-container { grid-template-columns: 1fr; } .img-card:first-child { grid-column: auto; } #game-score { left: 1rem; } #game-timer { right: 1rem; } }
+@media (max-width: 700px) { .card-container { grid-template-columns: 1fr; } .img-card:first-child { grid-column: auto; } .dialog-panel { padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); } .dialog-stats { gap: 2rem; } }
+@media (pointer: coarse) { button { min-height: 48px; } #game-pause-control { min-width: 96px; } }
 @media (prefers-reduced-motion: reduce) { .dialog-wrapper { transition: none; } }
