@@ -152,7 +152,7 @@ export class UI {
       [Yoshi1, 'Alex', 'Bravely jumping toward a release deadline that keeps moving.'],
       [Wall1, 'Teams', 'A powerful slowdown mechanism, activated by asking just one more question.'],
       [Bugs1, 'Bugs', 'Each one has the power to delay a release indefinitely.'],
-      [Requirements1, 'Requirements', 'Great for planning — until they change after work has started.'],
+      [Requirements1, 'Requirements', 'Great for planning. Less great when they change after work has started.'],
       [BigCheese1, 'Big Cheese', 'Master of last-minute ideas and “It’s a small change.”'],
     ];
     for (const [src, title, description] of items) cards.append(this.createCard(src, title, description));
