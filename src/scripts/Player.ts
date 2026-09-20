@@ -3,7 +3,7 @@ import { GameState, type Game } from './Game';
 export class Player {
   private static readonly JUMP_DURATION = 0.6;
   private static readonly MAX_JUMP = 128;
-  private static readonly ANIMATION_FPS = 3;
+  private static readonly ANIMATION_FPS = 8;
   private readonly height = 32;
   private readonly width = 32;
   private readonly runningAnimation: readonly HTMLImageElement[];

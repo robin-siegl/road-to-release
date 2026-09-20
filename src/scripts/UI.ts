@@ -67,6 +67,7 @@ export class UI {
     headline.className = 'ui-headline';
     headline.textContent = 'Road to Release';
     const actions = document.createElement('div');
+    actions.className = 'dialog-actions';
     actions.append(
       Button.create('primary', ready ? 'New Game' : 'Loading…', () => this.game.startGame(), !ready),
       Button.create('secondary', 'About', () => { this.hideMenu(); this.showAbout(); }),
@@ -129,6 +130,7 @@ export class UI {
     headline.className = 'ui-headline';
     headline.textContent = title;
     const actions = document.createElement('div');
+    actions.className = 'dialog-actions';
     actions.append(
       Button.create('primary', primaryLabel, primaryAction),
       Button.create('secondary', 'Main Menu', () => this.game.restartGame()),
@@ -155,6 +157,7 @@ export class UI {
     ];
     for (const [src, title, description] of items) cards.append(this.createCard(src, title, description));
     const actions = document.createElement('div');
+    actions.className = 'dialog-actions';
     actions.append(Button.create('primary', 'Main Menu', () => { this.hideAbout(); this.showMenu(true); }));
     content.append(headline, cards, actions);
     this.aboutElem.classList.add('visible');

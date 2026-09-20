@@ -8,15 +8,17 @@ export enum WorldObjectType {
 }
 
 export class WorldObject {
-  private static readonly BASE_SPEED = 120;
-  private static readonly ANIMATION_FPS = 1.8;
+  private static readonly BASE_SPEED = 280;
+  private static readonly ANIMATION_FPS = 5;
   private readonly animation: readonly HTMLImageElement[];
   private x: number;
+  private previousX: number;
   private animationTime = 0;
 
   public constructor(private readonly game: Game, private readonly type: WorldObjectType) {
     this.animation = game.AssetManager.getAnimationWorldObjects(type);
     this.x = game.width;
+    this.previousX = this.x;
   }
 
   public get points(): number {
@@ -52,6 +54,7 @@ export class WorldObject {
   }
 
   public update(delta: number): void {
+    this.previousX = this.x;
     this.x -= this.speed * delta;
     this.animationTime += delta;
   }
@@ -67,7 +70,11 @@ export class WorldObject {
     const radius = 13;
     const centerX = x + 16;
     const centerY = y + 16;
-    const closestX = Math.max(this.x, Math.min(centerX, this.x + this.width));
+    // Include the distance travelled during this frame so fast, narrow objects
+    // cannot skip through the player between two rendered frames.
+    const collisionX = Math.min(this.x, this.previousX);
+    const collisionWidth = this.width + Math.abs(this.previousX - this.x);
+    const closestX = Math.max(collisionX, Math.min(centerX, collisionX + collisionWidth));
     const closestY = Math.max(this.y, Math.min(centerY, this.y + this.height));
     const deltaX = centerX - closestX;
     const deltaY = centerY - closestY;
